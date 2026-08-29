@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jahresabgleich</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body class="dark">
+
+  <header class="topbar">
+    <div class="brand">
+      Jahresabgleich
+      <span class="brand-sub">Fortschritt &amp; Auswertung</span>
+    </div>
+
+    <nav class="year-nav" id="yearNav" aria-label="Jahres-Navigation"></nav>
+
+    <div class="settings-wrap">
+      <button class="settings-btn" id="settingsBtn" title="Einstellungen" aria-label="Einstellungen">⚙</button>
+      <div class="settings-panel" id="settingsPanel" hidden>
+        <label>
+          <input type="checkbox" id="darkModeToggle" />
+          Dark Mode
+        </label>
+      </div>
+    </div>
+  </header>
+
+  <main id="app">
+    <div id="lockedView" class="view"></div>
+
+    <div id="yearView" class="view" hidden>
+      <div id="yearHeader"></div>
+      <div class="subnav" id="subnav"></div>
+      <section id="fragenTab"></section>
+      <section id="uebersichtTab" hidden></section>
+    </div>
+  </main>
+
+  <div class="modal" id="entryModal" hidden>
+    <div class="modal-panel">
+      <button class="modal-close" id="modalClose" aria-label="Schließen">✕</button>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- Bibliotheken für Spinnendiagramm und PDF-Export -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"
+    onerror="console.error('Chart.js konnte nicht geladen werden – Internetverbindung/CDN-Zugriff prüfen.')"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"
+    onerror="console.error('jsPDF konnte nicht geladen werden – Internetverbindung/CDN-Zugriff prüfen.')"></script>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+
+</html>
