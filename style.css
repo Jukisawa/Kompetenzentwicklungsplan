@@ -32,9 +32,12 @@ body.light {
   --shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   min-height: 100%;
@@ -47,7 +50,9 @@ body {
   transition: background 0.2s ease, color 0.2s ease;
 }
 
-h1, h2, h3 {
+h1,
+h2,
+h3 {
   font-family: var(--font-display);
   letter-spacing: -0.01em;
 }
@@ -61,9 +66,9 @@ button {
    TOPBAR
    ========================================================================= */
 .topbar {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   gap: 24px;
   padding: 14px 24px;
   background: var(--surface);
@@ -94,9 +99,9 @@ button {
 .year-nav {
   display: flex;
   gap: 10px;
-  flex: 1;
-  justify-content: center;
+  justify-self: center;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 .year-btn {
@@ -128,8 +133,11 @@ button {
 .year-btn .year-label {
   position: relative;
   z-index: 1;
-  mix-blend-mode: difference;
+  display: inline-block;
   color: #fff;
+  padding: 3px 10px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.4);
 }
 
 .year-btn.locked {
@@ -172,6 +180,7 @@ button {
 /* ---- Settings ---- */
 .settings-wrap {
   position: relative;
+  justify-self: end;
 }
 
 .settings-btn {
@@ -216,6 +225,10 @@ main {
   padding: 32px 20px 80px;
 }
 
+body.compare-active main {
+  padding-bottom: 130px;
+}
+
 .locked-hint {
   text-align: center;
   color: var(--text-muted);
@@ -237,7 +250,9 @@ main {
   margin-bottom: 18px;
 }
 
-.year-back:hover { color: var(--text); }
+.year-back:hover {
+  color: var(--text);
+}
 
 /* ---- Subnav (Fragen / Übersicht) ---- */
 .subnav {
@@ -384,7 +399,9 @@ main {
   margin-top: 26px;
 }
 
-.btn-secondary:hover { color: var(--text); }
+.btn-secondary:hover {
+  color: var(--text);
+}
 
 /* ---- Ergebnis / Radar ---- */
 .radar-wrap {
@@ -454,14 +471,126 @@ main {
   letter-spacing: 0.04em;
 }
 
-.entry-row { cursor: pointer; transition: background 0.15s ease; }
-.entry-row:hover { background: var(--surface-2); }
-.entry-row:last-child td { border-bottom: none; }
+.entry-row {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.entry-row:hover {
+  background: var(--surface-2);
+}
+
+.entry-row:last-child td {
+  border-bottom: none;
+}
+
+.compare-check-cell {
+  width: 36px;
+}
+
+.compare-checkbox {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
 
 .empty-state {
   color: var(--text-muted);
   text-align: center;
   padding: 40px 0;
+}
+
+/* ---- Vergleichsleiste ---- */
+.compare-tray {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.15);
+  z-index: 35;
+}
+
+.compare-tray-inner {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.compare-tray-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex: 1;
+}
+
+.compare-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-left-width: 4px;
+  border-radius: var(--radius-sm);
+  padding: 5px 8px 5px 10px;
+  font-size: 0.8rem;
+  background: var(--surface-2);
+}
+
+.compare-chip small {
+  color: var(--text-muted);
+}
+
+.compare-chip-remove {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  padding: 0 2px;
+  line-height: 1;
+}
+
+.compare-chip-remove:hover {
+  color: var(--text);
+}
+
+.compare-tray-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.compare-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.compare-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+}
+
+.compare-legend-year {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+
+.compare-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
 }
 
 /* ---- Modal ---- */
@@ -503,7 +632,9 @@ main {
   line-height: 1;
 }
 
-.modal-close:hover { color: var(--text); }
+.modal-close:hover {
+  color: var(--text);
+}
 
 .modal-date {
   color: var(--text-muted);
@@ -513,6 +644,24 @@ main {
 }
 
 @media (max-width: 640px) {
-  .topbar { flex-wrap: wrap; }
-  .year-nav { order: 3; width: 100%; justify-content: flex-start; overflow-x: auto; }
+  .topbar {
+    grid-template-columns: 1fr auto;
+    grid-template-areas: "brand settings" "nav nav";
+    row-gap: 12px;
+  }
+
+  .brand {
+    grid-area: brand;
+  }
+
+  .settings-wrap {
+    grid-area: settings;
+  }
+
+  .year-nav {
+    grid-area: nav;
+    justify-self: stretch;
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
 }

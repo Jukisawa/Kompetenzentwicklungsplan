@@ -15,6 +15,11 @@ let state = {
   currentGroupIndex: 0,
 };
 
+// Ausgewählte Einträge für den Vergleich (Entry-IDs). Bewusst global/nicht
+// jahresgebunden, damit man Einträge aus verschiedenen Jahren gemeinsam
+// auswählen und vergleichen kann.
+let compareSelection = [];
+
 /* ---------------------------------------------------------------------
    Flache Gruppen-Liste (Kategorie für Kategorie, darin Gruppe für Gruppe)
    --------------------------------------------------------------------- */
@@ -96,6 +101,18 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("entryModal").addEventListener("click", (e) => {
     if (e.target.id === "entryModal") closeModal();
   });
+
+  document.getElementById("compareModalClose").addEventListener("click", closeCompareModal);
+  document.getElementById("compareModal").addEventListener("click", (e) => {
+    if (e.target.id === "compareModal") closeCompareModal();
+  });
+  document.getElementById("compareOpenBtn").addEventListener("click", openCompareModal);
+  document.getElementById("compareClearBtn").addEventListener("click", () => {
+    compareSelection = [];
+    updateCompareTray();
+    if (state.currentTab === "uebersicht") renderUebersichtTab();
+  });
+
   document.addEventListener("click", (e) => {
     const panel = document.getElementById("settingsPanel");
     const btn = document.getElementById("settingsBtn");
@@ -144,9 +161,8 @@ function renderLockedView() {
   const view = document.getElementById("lockedView");
   const rows = YEARS.map((y) => {
     const unlocked = isUnlocked(y);
-    return `<li><span style="color:${y.color}; font-family:var(--font-mono);">${y.label}</span> — ${
-      unlocked ? "freigeschaltet seit " + formatDate(y.targetDate) : "Freischaltung am " + formatDate(y.targetDate)
-    }</li>`;
+    return `<li><span style="color:${y.color}; font-family:var(--font-mono);">${y.label}</span> — ${unlocked ? "freigeschaltet seit " + formatDate(y.targetDate) : "Freischaltung am " + formatDate(y.targetDate)
+      }</li>`;
   }).join("");
   view.innerHTML = `
     <div class="locked-hint">
@@ -233,9 +249,11 @@ function renderFragenTab() {
 
   const totalGroups = flatGroups.length;
   const current = flatGroups[state.currentGroupIndex];
+  const groupsInCategory = flatGroups.filter((g) => g.categoryName === current.categoryName);
+  const indexInCategory = groupsInCategory.indexOf(current) + 1;
 
   let html = `<div class="category-heading">${current.categoryName}</div>`;
-  html += `<div class="progress-indicator">Gruppe ${state.currentGroupIndex + 1} von ${totalGroups} — ${current.groupName}</div>`;
+  html += `<div class="progress-indicator">Gruppe ${indexInCategory} von ${groupsInCategory.length} — ${current.groupName}</div>`;
   html += '<div class="question-list">';
   current.questions.forEach((q) => {
     const val = answers[q.id];
@@ -244,20 +262,19 @@ function renderFragenTab() {
         <div class="question-text">${q.text}</div>
         <div class="answer-group" role="radiogroup">
           ${ANSWER_OPTIONS.map(
-            (o) => `
+      (o) => `
               <label class="answer-option${val === o.value ? " selected" : ""}">
                 <input type="radio" name="${q.id}" value="${o.value}" ${val === o.value ? "checked" : ""} />
                 <span>${o.label}</span>
               </label>`
-          ).join("")}
+    ).join("")}
         </div>
       </div>
     `;
   });
   html += "</div>";
-  html += `<div class="group-actions"><button id="nextGroupBtn" class="btn-primary">${
-    state.currentGroupIndex === totalGroups - 1 ? "Fertig" : "Weiter"
-  }</button></div>`;
+  html += `<div class="group-actions"><button id="nextGroupBtn" class="btn-primary">${state.currentGroupIndex === totalGroups - 1 ? "Fertig" : "Weiter"
+    }</button></div>`;
 
   container.innerHTML = html;
 
@@ -299,6 +316,29 @@ function checkGroupComplete() {
 }
 
 /* ---------------------------------------------------------------------
+   Lange Kategorienamen (ganze Sätze) als Achsenbeschriftung im
+   Spinnendiagramm umbrechen. Ohne das kann Chart.js bei sehr langem Text
+   die Zeichenfläche auf 0 schrumpfen lassen, sodass gar nichts mehr zu
+   sehen ist (kein Fehler in der Konsole, das Diagramm ist einfach leer).
+   --------------------------------------------------------------------- */
+function wrapLabel(text, maxChars = 16) {
+  const words = String(text).split(" ");
+  const lines = [];
+  let current = "";
+  words.forEach((word) => {
+    const candidate = current ? `${current} ${word}` : word;
+    if (candidate.length > maxChars && current) {
+      lines.push(current);
+      current = word;
+    } else {
+      current = candidate;
+    }
+  });
+  if (current) lines.push(current);
+  return lines;
+}
+
+/* ---------------------------------------------------------------------
    Auswertung: Kategorie-Scores + Spinnendiagramm
    --------------------------------------------------------------------- */
 function computeCategoryScores(answers) {
@@ -317,7 +357,7 @@ function renderResults(container, year, answers) {
 
   container.innerHTML = `
     <h2>Ergebnis</h2>
-    <div class="radar-wrap"><canvas id="radarCanvas" width="420" height="420"></canvas></div>
+    <div class="radar-wrap"><canvas id="radarCanvas" width="460" height="460"></canvas></div>
     <div class="save-panel">
       <label for="nameInput">Name</label>
       <input type="text" id="nameInput" placeholder="Dateiname" />
@@ -367,16 +407,17 @@ function drawRadarChart(canvasId, scores, categoryNames) {
   const isDark = document.body.classList.contains("dark");
   const gridColor = isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.12)";
   const textColor = isDark ? "#eef2f5" : "#1a1f24";
-  const labels = categoryNames || CATEGORIES.map((c) => c.name);
+  const names = categoryNames || CATEGORIES.map((c) => c.name);
+  const wrappedLabels = names.map((n) => wrapLabel(n));
 
   return new Chart(ctx, {
     type: "radar",
     data: {
-      labels,
+      labels: wrappedLabels,
       datasets: [
         {
           label: "Bewertung",
-          data: labels.map((c) => scores[c]),
+          data: names.map((c) => scores[c]),
           backgroundColor: "rgba(59,130,246,0.25)",
           borderColor: "#3b82f6",
           pointBackgroundColor: "#3b82f6",
@@ -394,12 +435,78 @@ function drawRadarChart(canvasId, scores, categoryNames) {
           ticks: { stepSize: 1, color: textColor, backdropColor: "transparent" },
           grid: { color: gridColor },
           angleLines: { color: gridColor },
-          pointLabels: { color: textColor, font: { size: 12 } },
+          pointLabels: { color: textColor, font: { size: 13, weight: "600" } },
         },
       },
       plugins: { legend: { display: false } },
     },
   });
+}
+
+/* ---------------------------------------------------------------------
+   Speziell für PDF-Export: Radar-Chart mit fest dunkler Beschriftung auf
+   weißem Hintergrund rendern (unabhängig vom aktuellen Dark/Light-Modus,
+   damit die Beschriftung auf der PDF-Seite immer lesbar ist).
+   --------------------------------------------------------------------- */
+function renderRadarForPdf(scores, categoryNames) {
+  const size = 480;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  canvas.style.position = "fixed";
+  canvas.style.left = "-9999px";
+  canvas.style.top = "0";
+  document.body.appendChild(canvas);
+
+  const whiteBackgroundPlugin = {
+    id: "whiteBackground",
+    beforeDraw: (chart) => {
+      const c = chart.canvas.getContext("2d");
+      c.save();
+      c.globalCompositeOperation = "destination-over";
+      c.fillStyle = "#ffffff";
+      c.fillRect(0, 0, chart.width, chart.height);
+      c.restore();
+    },
+  };
+
+  const chart = new Chart(canvas.getContext("2d"), {
+    type: "radar",
+    data: {
+      labels: categoryNames.map((n) => wrapLabel(n)),
+      datasets: [
+        {
+          label: "Bewertung",
+          data: categoryNames.map((c) => scores[c]),
+          backgroundColor: "rgba(59,130,246,0.25)",
+          borderColor: "#3b82f6",
+          pointBackgroundColor: "#3b82f6",
+          borderWidth: 2,
+        },
+      ],
+    },
+    options: {
+      responsive: false,
+      animation: false,
+      scales: {
+        r: {
+          min: 0,
+          max: 4,
+          ticks: { stepSize: 1, color: "#1a1f24", backdropColor: "transparent" },
+          grid: { color: "rgba(0,0,0,0.15)" },
+          angleLines: { color: "rgba(0,0,0,0.15)" },
+          pointLabels: { color: "#1a1f24", font: { size: 13, weight: "600" } },
+        },
+      },
+      plugins: { legend: { display: false } },
+    },
+    plugins: [whiteBackgroundPlugin],
+  });
+
+  const dataUrl = canvas.toDataURL("image/png");
+  chart.destroy();
+  canvas.remove();
+  return dataUrl;
 }
 
 /* ---------------------------------------------------------------------
@@ -490,18 +597,15 @@ function exportEntryToPdf(year, entry) {
     y += 8;
   });
 
-  const canvas = document.getElementById("radarCanvas");
-  if (canvas) {
-    if (y > 480) {
-      doc.addPage();
-      y = 50;
-    }
-    doc.setFontSize(13);
-    doc.text("Spinnendiagramm", marginX, y);
-    y += 12;
-    const imgData = canvas.toDataURL("image/png");
-    doc.addImage(imgData, "PNG", marginX, y, 250, 250);
+  if (y > 480) {
+    doc.addPage();
+    y = 50;
   }
+  doc.setFontSize(13);
+  doc.text("Spinnendiagramm", marginX, y);
+  y += 12;
+  const imgData = renderRadarForPdf(entry.scores, CATEGORIES.map((c) => c.name));
+  doc.addImage(imgData, "PNG", marginX, y, 250, 250);
 
   const safeName = entry.name.replace(/[^a-z0-9äöüß\-_]+/gi, "_");
   doc.save(`${year.label.replace(/\s+/g, "_")}_${safeName}_${formatDate(entry.date).replace(/\./g, "-")}.pdf`);
@@ -522,15 +626,36 @@ function renderUebersichtTab() {
     return;
   }
 
-  let html = '<table class="entries-table"><thead><tr><th>Datum</th><th>Name</th></tr></thead><tbody>';
+  let html = '<table class="entries-table"><thead><tr><th></th><th>Datum</th><th>Name</th></tr></thead><tbody>';
   entries.forEach((e) => {
-    html += `<tr class="entry-row" data-id="${e.id}"><td>${formatDate(e.date)}</td><td>${e.name}</td></tr>`;
+    const checked = compareSelection.includes(e.id) ? "checked" : "";
+    html += `<tr class="entry-row" data-id="${e.id}">
+      <td class="compare-check-cell"><input type="checkbox" class="compare-checkbox" data-id="${e.id}" ${checked} /></td>
+      <td>${formatDate(e.date)}</td>
+      <td>${e.name}</td>
+    </tr>`;
   });
   html += "</tbody></table>";
   container.innerHTML = html;
 
   container.querySelectorAll(".entry-row").forEach((row) => {
-    row.addEventListener("click", () => openEntryModal(row.dataset.id));
+    row.addEventListener("click", (e) => {
+      if (e.target.classList.contains("compare-checkbox")) return;
+      openEntryModal(row.dataset.id);
+    });
+  });
+
+  container.querySelectorAll(".compare-checkbox").forEach((cb) => {
+    cb.addEventListener("click", (e) => e.stopPropagation());
+    cb.addEventListener("change", (e) => {
+      const id = e.target.dataset.id;
+      if (e.target.checked) {
+        if (!compareSelection.includes(id)) compareSelection.push(id);
+      } else {
+        compareSelection = compareSelection.filter((x) => x !== id);
+      }
+      updateCompareTray();
+    });
   });
 }
 
@@ -547,7 +672,7 @@ function openEntryModal(entryId) {
   const body = document.getElementById("modalBody");
 
   let html = `<h2>${year.label} – ${entry.name}</h2><p class="modal-date">${formatDate(entry.date)}</p>`;
-  html += '<div class="radar-wrap"><canvas id="modalRadarCanvas" width="320" height="320"></canvas></div>';
+  html += '<div class="radar-wrap"><canvas id="modalRadarCanvas" width="360" height="360"></canvas></div>';
 
   CATEGORIES.forEach((cat) => {
     html += `<div class="category-heading">${cat.name}</div>`;
@@ -577,6 +702,149 @@ function openEntryModal(entryId) {
 
 function closeModal() {
   document.getElementById("entryModal").hidden = true;
+}
+
+/* ---------------------------------------------------------------------
+   Vergleich mehrerer Einträge (auch über Jahre hinweg)
+   --------------------------------------------------------------------- */
+function updateCompareTray() {
+  const tray = document.getElementById("compareTray");
+  const list = document.getElementById("compareTrayList");
+  const openBtn = document.getElementById("compareOpenBtn");
+
+  if (compareSelection.length === 0) {
+    tray.hidden = true;
+    document.body.classList.remove("compare-active");
+    return;
+  }
+  tray.hidden = false;
+  document.body.classList.add("compare-active");
+
+  const allEntries = loadEntries();
+  list.innerHTML = compareSelection
+    .map((id) => {
+      const entry = allEntries.find((e) => e.id === id);
+      if (!entry) return "";
+      const year = YEARS.find((y) => y.id === entry.yearId);
+      const color = year ? year.color : "#888";
+      return `
+        <span class="compare-chip" style="border-left-color:${color}">
+          ${entry.name} <small>(${year ? year.label : "?"})</small>
+          <button class="compare-chip-remove" data-id="${entry.id}" aria-label="Entfernen">✕</button>
+        </span>`;
+    })
+    .join("");
+
+  list.querySelectorAll(".compare-chip-remove").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      compareSelection = compareSelection.filter((id) => id !== btn.dataset.id);
+      updateCompareTray();
+      if (state.currentTab === "uebersicht") renderUebersichtTab();
+    });
+  });
+
+  openBtn.disabled = compareSelection.length < 2;
+}
+
+function openCompareModal() {
+  if (compareSelection.length < 2) return;
+  const allEntries = loadEntries();
+  const entries = compareSelection.map((id) => allEntries.find((e) => e.id === id)).filter(Boolean);
+
+  const legendHtml = entries
+    .map((entry) => {
+      const year = YEARS.find((y) => y.id === entry.yearId);
+      const color = year ? year.color : "#888";
+      return `
+        <div class="compare-legend-item">
+          <span class="compare-swatch" style="background:${color}"></span>
+          ${entry.name}
+          <span class="compare-legend-year">${year ? year.label : "?"} • ${formatDate(entry.date)}</span>
+        </div>`;
+    })
+    .join("");
+
+  const body = document.getElementById("compareModalBody");
+  body.innerHTML = `
+    <h2>Vergleich</h2>
+    <div class="radar-wrap"><canvas id="compareRadarCanvas" width="480" height="480"></canvas></div>
+    <div class="compare-legend">${legendHtml}</div>
+  `;
+
+  document.getElementById("compareModal").hidden = false;
+  drawComparisonRadar("compareRadarCanvas", entries);
+}
+
+function closeCompareModal() {
+  document.getElementById("compareModal").hidden = true;
+}
+
+function hexToRgba(hex, alpha) {
+  const clean = hex.replace("#", "");
+  const full = clean.length === 3 ? clean.split("").map((c) => c + c).join("") : clean;
+  const num = parseInt(full, 16);
+  const r = (num >> 16) & 255;
+  const g = (num >> 8) & 255;
+  const b = num & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function drawComparisonRadar(canvasId, entries) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return null;
+
+  if (typeof Chart === "undefined") {
+    console.error("Chart.js wurde nicht geladen (window.Chart ist undefined).");
+    const msg = document.createElement("p");
+    msg.className = "empty-state";
+    msg.textContent = "Diagramm konnte nicht geladen werden (Chart.js nicht verfügbar).";
+    canvas.replaceWith(msg);
+    return null;
+  }
+
+  const isDark = document.body.classList.contains("dark");
+  const gridColor = isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.12)";
+  const textColor = isDark ? "#eef2f5" : "#1a1f24";
+  const categoryNames = CATEGORIES.map((c) => c.name);
+
+  const datasets = entries.map((entry) => {
+    const year = YEARS.find((y) => y.id === entry.yearId);
+    const color = year ? year.color : "#3b82f6";
+    return {
+      label: `${entry.name} (${year ? year.label : "?"})`,
+      data: categoryNames.map((c) => entry.scores[c] ?? 0),
+      borderColor: color,
+      backgroundColor: hexToRgba(color, 0.18),
+      pointBackgroundColor: color,
+      borderWidth: 2,
+    };
+  });
+
+  return new Chart(canvas.getContext("2d"), {
+    type: "radar",
+    data: { labels: categoryNames.map((n) => wrapLabel(n)), datasets },
+    options: {
+      responsive: false,
+      animation: { duration: 400 },
+      scales: {
+        r: {
+          min: 0,
+          max: 4,
+          ticks: { stepSize: 1, color: textColor, backdropColor: "transparent" },
+          grid: { color: gridColor },
+          angleLines: { color: gridColor },
+          pointLabels: { color: textColor, font: { size: 13, weight: "600" } },
+        },
+      },
+      plugins: {
+        legend: {
+          display: true,
+          position: "bottom",
+          labels: { color: textColor, font: { size: 11 }, boxWidth: 12 },
+        },
+      },
+    },
+  });
 }
 
 /* ---------------------------------------------------------------------

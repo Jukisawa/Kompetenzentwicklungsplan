@@ -19,7 +19,7 @@
 // color: Hintergrund-/Füllfarbe des Buttons
 const YEARS = [
   { id: 1, label: "1. Jahr", color: "#e5484d", startDate: "2025-01-01", targetDate: "2025-06-01" },
-  { id: 2, label: "2. Jahr", color: "#f2b705", startDate: "2025-06-01", targetDate: "2026-12-01" },
+  { id: 2, label: "2. Jahr", color: "#f2b705", startDate: "2025-06-01", targetDate: "2026-08-01" },
   { id: 3, label: "3. Jahr", color: "#2fae60", startDate: "2026-01-01", targetDate: "2027-06-01" },
   { id: 4, label: "4. Jahr", color: "#3b82f6", startDate: "2026-01-01", targetDate: "2028-01-01" },
 ];
@@ -30,7 +30,7 @@ const YEARS = [
 // Jede Frage braucht eine eindeutige id (über alle Kategorien hinweg).
 const CATEGORIES = [
   {
-    "name": "Ich habe eine berufliche Identität und professionelle Perspektive entwickelt.",
+    "name": "1. Ich habe eine berufliche Identität und professionelle Perspektive entwickelt.",
     "groups": [
       {
         "name": "Berufliche Identität",
@@ -98,7 +98,7 @@ const CATEGORIES = [
     ]
   },
   {
-    "name": "Ich gestalte pädagogische Beziehungen und begleite Gruppenprozesse.",
+    "name": "2. Ich gestalte pädagogische Beziehungen und begleite Gruppenprozesse.",
     "groups": [
       {
         "name": "Wahrnehmung und Beobachtung",
@@ -192,7 +192,7 @@ const CATEGORIES = [
     ]
   },
   {
-    "name": "Menschen mit Behinderung/en individuell pflegen und begleiten.",
+    "name": "3. Menschen mit Behinderung/en individuell pflegen und begleiten.",
     "groups": [
       {
         "name": "Theoretische Grundlagen",
@@ -263,7 +263,7 @@ const CATEGORIES = [
     ]
   },
   {
-    "name": "Die Lebenswelten mit Menschen mit Behinderung/en strukturieren und gestalten.",
+    "name": "4. Die Lebenswelten mit Menschen mit Behinderung/en strukturieren und gestalten.",
     "groups": [
       {
         "name": "Gesellschaftliche Stellung / Paradigmen",
@@ -445,7 +445,7 @@ const CATEGORIES = [
     ]
   },
   {
-    "name": "Ich entwickle kulturelle Ausdrucksmöglichkeiten und Kreativität weiter.",
+    "name": "5. Ich entwickle kulturelle Ausdrucksmöglichkeiten und Kreativität weiter.",
     "groups": [
       {
         "name": "Weiterentwicklung kultureller, kreativer, motorischer und medialer Kompetenzen",
@@ -488,7 +488,7 @@ const CATEGORIES = [
     ]
   },
   {
-    "name": "Beobachtung, Dokumentation und Reflexion",
+    "name": "6. Beobachtung, Dokumentation und Reflexion",
     "groups": [
       {
         "name": "Beobachtung, Dokumentation und Reflexion",
@@ -522,7 +522,7 @@ const CATEGORIES = [
     ]
   },
   {
-    "name": "Konzeptionsbezogen und unternehmerisch handeln sowie Qualität sichern und entwickeln.",
+    "name": "7. Konzeptionsbezogen und unternehmerisch handeln sowie Qualität sichern und entwickeln.",
     "groups": [
       {
         "name": "Konzeptionsbezogene Arbeit",
@@ -576,7 +576,7 @@ const CATEGORIES = [
     ]
   },
   {
-    "name": "Mein Ziel für die Ausbildung – Facharbeit erstellen",
+    "name": "8. Mein Ziel für die Ausbildung – Facharbeit erstellen",
     "groups": [
       {
         "name": "Facharbeit",

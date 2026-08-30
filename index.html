@@ -52,6 +52,23 @@
     </div>
   </div>
 
+  <div class="modal" id="compareModal" hidden>
+    <div class="modal-panel">
+      <button class="modal-close" id="compareModalClose" aria-label="Schließen">✕</button>
+      <div id="compareModalBody"></div>
+    </div>
+  </div>
+
+  <div class="compare-tray" id="compareTray" hidden>
+    <div class="compare-tray-inner">
+      <div class="compare-tray-list" id="compareTrayList"></div>
+      <div class="compare-tray-actions">
+        <button id="compareClearBtn" class="btn-secondary">Auswahl leeren</button>
+        <button id="compareOpenBtn" class="btn-primary" disabled>Vergleichen</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Bibliotheken für Spinnendiagramm und PDF-Export -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"
     onerror="console.error('Chart.js konnte nicht geladen werden – Internetverbindung/CDN-Zugriff prüfen.')"></script>
